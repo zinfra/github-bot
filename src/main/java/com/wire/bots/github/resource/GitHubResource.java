@@ -131,7 +131,7 @@ public class GitHubResource {
         switch (response.action) {
             case "submitted": {
                 String title = "";
-                if ("".equals(response.review.body)) {
+                if ("".equals(response.review.body) && response.review.state != "commented") {
                     title = String.format("[%s] %s %s PR #%s",
                             response.repository.fullName,
                             response.review.user.login,

@@ -73,7 +73,8 @@ public class MessageHandler extends MessageHandlerBase {
                         + "2. Go to Settings / Webhooks / Add webhook\n"
                         + "3. Add Payload URL: https://%s/github/%s\n"
                         + "4. Set Content-Type: application/json\n"
-                        + "5. Set Secret: %s",
+                        + "5. Disable SSL verification\n"
+                        + "6. Set Secret: %s",
                 host,
                 botId,
                 secret);

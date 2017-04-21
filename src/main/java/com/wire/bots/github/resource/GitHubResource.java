@@ -3,7 +3,7 @@ package com.wire.bots.github.resource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wire.bots.github.BotConfig;
 import com.wire.bots.github.model.Commit;
-import com.wire.bots.github.model.Response;
+import com.wire.bots.github.model.GitResponse;
 import com.wire.bots.sdk.ClientRepo;
 import com.wire.bots.sdk.Logger;
 import com.wire.bots.sdk.Util;
@@ -17,7 +17,7 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -40,11 +40,11 @@ public class GitHubResource {
 
     @POST
     @Path("/{botId}")
-    public javax.ws.rs.core.Response broadcast(@PathParam("botId") String botId,
-                                               @HeaderParam("X-GitHub-Event") String event,
-                                               @HeaderParam("X-Hub-Signature") String signature,
-                                               @HeaderParam("X-GitHub-Delivery") String delivery,
-                                               String payload) throws Exception {
+    public Response webHook(@PathParam("botId") String botId,
+                            @HeaderParam("X-GitHub-Event") String event,
+                            @HeaderParam("X-Hub-Signature") String signature,
+                            @HeaderParam("X-GitHub-Delivery") String delivery,
+                            String payload) throws Exception {
 
         Logger.info("Event: %s, Signature: %s, Delivery: %s", event, signature, delivery);
 
@@ -59,7 +59,7 @@ public class GitHubResource {
 
         ObjectMapper mapper = new ObjectMapper();
         WireClient client = repo.getWireClient(botId);
-        Response response = mapper.readValue(payload, Response.class);
+        GitResponse response = mapper.readValue(payload, GitResponse.class);
 
         switch (event) {
             case "pull_request": {
@@ -84,12 +84,12 @@ public class GitHubResource {
             }
         }
 
-        return javax.ws.rs.core.Response.
+        return Response.
                 ok().
                 build();
     }
 
-    private void handleIssue(String event, WireClient client, Response response) throws Exception {
+    private void handleIssue(String event, WireClient client, GitResponse response) throws Exception {
         if (response.action == null) return;
 
         switch (response.action) {
@@ -109,8 +109,8 @@ public class GitHubResource {
         }
     }
 
-    private void handlePush(WireClient client, Response response) throws Exception {
-        if (response.created == true) {
+    private void handlePush(WireClient client, GitResponse response) throws Exception {
+        if (response.created) {
             List<Commit> commits = response.commits;
             String title = String.format("[%s] %s pushed %d commits",
                     response.repository.fullName,
@@ -126,13 +126,13 @@ public class GitHubResource {
         }
     }
 
-    private void handlePrReview(WireClient client, Response response) throws Exception {
+    private void handlePrReview(WireClient client, GitResponse response) throws Exception {
         if (response.action == null) return;
 
         switch (response.action) {
             case "submitted": {
-                String title = "";
-                if ((response.review.body == null || response.review.body.isEmpty()) && response.review.state != "commented") {
+                String title;
+                if ((response.review.body == null || response.review.body.isEmpty()) && !response.review.state.equals("commented")) {
                     title = String.format("[%s] %s %s PR #%s",
                             response.repository.fullName,
                             response.review.user.login,
@@ -152,7 +152,7 @@ public class GitHubResource {
         }
     }
 
-    private void handlePrReviewComment(WireClient client, Response response) throws Exception {
+    private void handlePrReviewComment(WireClient client, GitResponse response) throws Exception {
         if (response.action == null) return;
 
         switch (response.action) {
@@ -165,7 +165,7 @@ public class GitHubResource {
         }
     }
 
-    private void handlePullReq(String event, WireClient client, Response response) throws Exception {
+    private void handlePullReq(String event, WireClient client, GitResponse response) throws Exception {
         if (response.action == null) return;
 
         switch (response.action) {
@@ -186,7 +186,7 @@ public class GitHubResource {
     }
 
     private void sendLinkPreview(WireClient client, String url, String title, String imageName) throws Exception {
-        Picture preview = null;
+        Picture preview;
         if (imageName.startsWith("http")) {
             preview = new Picture(imageName);
         } else {

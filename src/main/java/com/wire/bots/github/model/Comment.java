@@ -10,4 +10,7 @@ public class Comment {
 
     @JsonProperty("user")
     public User user;
+
+    @JsonProperty("html_url")
+    public String url;
 }

@@ -122,6 +122,7 @@ public class GitHubResource {
                 builder.append("* ");
                 builder.append(commit.message);
             }
+            client.sendText(builder.toString());
         }
     }
 

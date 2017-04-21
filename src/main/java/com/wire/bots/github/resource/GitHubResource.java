@@ -134,7 +134,7 @@ public class GitHubResource {
             case "submitted": {
                 String title = String.format("[%s] %s reviewed PR #%s: %s",
                         response.repository.fullName,
-                        response.review.user,
+                        response.review.user.login,
                         response.pr.number,
                         response.review.body);
                 sendLinkPreview(client, response.pr.url, title, response.sender.avatarUrl);

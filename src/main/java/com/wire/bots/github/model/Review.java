@@ -10,4 +10,7 @@ public class Review {
 
     @JsonProperty("user")
     public User user;
+
+    @JsonProperty("state")
+    public String state;
 }

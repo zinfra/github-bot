@@ -17,6 +17,7 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+
 import java.io.File;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -89,7 +90,7 @@ public class GitHubResource {
     }
 
     private void handleIssue(String event, WireClient client, Response response) throws Exception {
-        if(response.action == null) return;
+        if (response.action == null) return;
 
         switch (response.action) {
             case "opened":
@@ -125,12 +126,12 @@ public class GitHubResource {
     }
 
     private void handlePrReview(WireClient client, Response response) throws Exception {
-        if(response.action == null) return;
+        if (response.action == null) return;
 
         switch (response.action) {
             case "submitted": {
                 String title = "";
-                if("".equals(response.review.body)) {
+                if ("".equals(response.review.body)) {
                     title = String.format("[%s] %s %s PR #%s",
                             response.repository.fullName,
                             response.review.user.login,
@@ -151,7 +152,7 @@ public class GitHubResource {
     }
 
     private void handlePrReviewComment(WireClient client, Response response) throws Exception {
-        if(response.action == null) return;
+        if (response.action == null) return;
 
         switch (response.action) {
             case "created": {
@@ -164,7 +165,7 @@ public class GitHubResource {
     }
 
     private void handlePullReq(String event, WireClient client, Response response) throws Exception {
-        if(response.action == null) return;
+        if (response.action == null) return;
 
         switch (response.action) {
             case "opened": {
@@ -185,7 +186,7 @@ public class GitHubResource {
 
     private void sendLinkPreview(WireClient client, String url, String title, String imageName) throws Exception {
         Picture preview = null;
-        if(imageName.startsWith("http")) {
+        if (imageName.startsWith("http")) {
             preview = new Picture(imageName);
         } else {
             try (InputStream in = GitHubResource.class.getClassLoader().getResourceAsStream("images/" + imageName + ".png")) {

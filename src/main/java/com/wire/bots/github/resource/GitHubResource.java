@@ -119,8 +119,9 @@ public class GitHubResource {
             sendLinkPreview(client, response.compare, title, response.sender.avatarUrl);
             StringBuilder builder = new StringBuilder();
             for (Commit commit : commits) {
-                builder.append("* ");
+                builder.append("- ");
                 builder.append(commit.message);
+                builder.append("\n");
             }
             client.sendText(builder.toString());
         }

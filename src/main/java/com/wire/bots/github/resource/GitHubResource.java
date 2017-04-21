@@ -109,20 +109,17 @@ public class GitHubResource {
     }
 
     private void handlePush(WireClient client, Response response) throws Exception {
-        if(response.action == null) return;
-
-        switch (response.action) {
-            case "created": {
-                List<Commit> commits = response.commits;
-                String title = String.format("[%s] %s pushed %d commits", response.repository.fullName,
-                        response.sender.login, commits.size());
-                sendLinkPreview(client, response.compare, title, response.sender.avatarUrl);
-                StringBuilder builder = new StringBuilder();
-                for(Commit commit: commits) {
-                    builder.append("* ");
-                    builder.append(commit.message);
-                }
-                break;
+        if (response.created == true) {
+            List<Commit> commits = response.commits;
+            String title = String.format("[%s] %s pushed %d commits",
+                    response.repository.fullName,
+                    response.sender.login,
+                    commits.size());
+            sendLinkPreview(client, response.compare, title, response.sender.avatarUrl);
+            StringBuilder builder = new StringBuilder();
+            for (Commit commit : commits) {
+                builder.append("* ");
+                builder.append(commit.message);
             }
         }
     }

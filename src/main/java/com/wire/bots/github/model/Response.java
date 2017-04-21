@@ -33,4 +33,7 @@ public class Response {
 
     @JsonProperty("repository")
     public Repository repository;
+
+    @JsonProperty("created")
+    public Boolean created;
 }

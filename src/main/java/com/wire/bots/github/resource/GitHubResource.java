@@ -62,78 +62,23 @@ public class GitHubResource {
 
         switch (event) {
             case "pull_request": {
-                switch (response.action) {
-                    case "opened": {
-                        String title = String.format("[%s] New PR #%s: %s", response.repository.fullName,
-                                response.pr.number, response.pr.title);
-                        sendLinkPreview(client, response.pr.url, title, event + "_" + response.action);
-                        break;
-                    }
-                    case "closed": {
-                        String mergedOrClosed = response.pr.merged ? "merged" : "closed";
-                        String title = String.format("[%s] PR #%s %s: %s", response.repository.fullName,
-                                response.pr.number, mergedOrClosed, response.pr.title);
-                        sendLinkPreview(client, response.pr.url, title, event + "_" + mergedOrClosed);
-                        break;
-                    }
-                }
+                handlePullReq(event, client, response);
                 break;
             }
             case "pull_request_review_comment": {
-                switch (response.action) {
-                    case "created": {
-                        String title = String.format("[%s] %s added a comment to PR #%s: %s", response.repository.fullName,
-                                response.comment.user.login, response.pr.number, response.comment.body);
-                        sendLinkPreview(client, response.pr.url, title, response.sender.avatarUrl);
-                        break;
-                    }
-                }
+                handlePrReviewComment(client, response);
+                break;
             }
             case "pull_request_review": {
-                switch (response.action) {
-                    case "submitted": {
-                        String title = String.format("[%s] %s reviewed PR #%s: %s",
-                                response.repository.fullName,
-                                response.review.user,
-                                response.pr.number,
-                                response.review.body);
-                        sendLinkPreview(client, response.pr.url, title, response.sender.avatarUrl);
-                        break;
-                    }
-                }
+                handlePrReview(client, response);
+                break;
             }
             case "push": {
-                switch (response.action) {
-                    case "created": {
-                        List<Commit> commits = response.commits;
-                        String title = String.format("[%s] %s pushed %d commits", response.repository.fullName,
-                                response.sender.login, commits.size());
-                        sendLinkPreview(client, response.compare, title, response.sender.avatarUrl);
-                        StringBuilder builder = new StringBuilder();
-                        for(Commit commit: commits) {
-                            builder.append("* ");
-                            builder.append(commit.message);
-                        }
-                        break;
-                    }
-                }
+                handlePush(client, response);
+                break;
             }
             case "issues": {
-                switch (response.action) {
-                    case "opened":
-                    case "reopened": {
-                        String title = String.format("[%s] New Issue #%s: %s", response.repository.fullName,
-                                response.issue.number, response.issue.title);
-                        sendLinkPreview(client, response.issue.url, title, event + "_" + response.action);
-                        break;
-                    }
-                    case "closed": {
-                        String title = String.format("[%s] Issue #%s closed: %s", response.repository.fullName,
-                                response.issue.number, response.issue.title);
-                        sendLinkPreview(client, response.issue.url, title, event + "_" + response.action);
-                        break;
-                    }
-                }
+                handleIssue(event, client, response);
                 break;
             }
         }
@@ -141,6 +86,94 @@ public class GitHubResource {
         return javax.ws.rs.core.Response.
                 ok().
                 build();
+    }
+
+    private void handleIssue(String event, WireClient client, Response response) throws Exception {
+        if(response.action == null) return;
+
+        switch (response.action) {
+            case "opened":
+            case "reopened": {
+                String title = String.format("[%s] New Issue #%s: %s", response.repository.fullName,
+                        response.issue.number, response.issue.title);
+                sendLinkPreview(client, response.issue.url, title, event + "_" + response.action);
+                break;
+            }
+            case "closed": {
+                String title = String.format("[%s] Issue #%s closed: %s", response.repository.fullName,
+                        response.issue.number, response.issue.title);
+                sendLinkPreview(client, response.issue.url, title, event + "_" + response.action);
+                break;
+            }
+        }
+    }
+
+    private void handlePush(WireClient client, Response response) throws Exception {
+        if(response.action == null) return;
+
+        switch (response.action) {
+            case "created": {
+                List<Commit> commits = response.commits;
+                String title = String.format("[%s] %s pushed %d commits", response.repository.fullName,
+                        response.sender.login, commits.size());
+                sendLinkPreview(client, response.compare, title, response.sender.avatarUrl);
+                StringBuilder builder = new StringBuilder();
+                for(Commit commit: commits) {
+                    builder.append("* ");
+                    builder.append(commit.message);
+                }
+                break;
+            }
+        }
+    }
+
+    private void handlePrReview(WireClient client, Response response) throws Exception {
+        if(response.action == null) return;
+
+        switch (response.action) {
+            case "submitted": {
+                String title = String.format("[%s] %s reviewed PR #%s: %s",
+                        response.repository.fullName,
+                        response.review.user,
+                        response.pr.number,
+                        response.review.body);
+                sendLinkPreview(client, response.pr.url, title, response.sender.avatarUrl);
+                break;
+            }
+        }
+    }
+
+    private void handlePrReviewComment(WireClient client, Response response) throws Exception {
+        if(response.action == null) return;
+
+        switch (response.action) {
+            case "created": {
+                String title = String.format("[%s] %s added a comment to PR #%s: %s", response.repository.fullName,
+                        response.comment.user.login, response.pr.number, response.comment.body);
+                sendLinkPreview(client, response.pr.url, title, response.sender.avatarUrl);
+                break;
+            }
+        }
+    }
+
+    private void handlePullReq(String event, WireClient client, Response response) throws Exception {
+        if(response.action == null) return;
+
+        switch (response.action) {
+            case "opened": {
+                String title = String.format("[%s] New PR #%s: %s", response.repository.fullName,
+                        response.pr.number, response.pr.title);
+                sendLinkPreview(client, response.pr.url, title, event + "_" + response.action);
+                break;
+            }
+            case "closed": {
+                String mergedOrClosed = response.pr.merged ? "merged" : "closed";
+                String title = String.format("[%s] PR #%s %s: %s", response.repository.fullName,
+                        response.pr.number, mergedOrClosed, response.pr.title);
+                sendLinkPreview(client, response.pr.url, title, event + "_" + mergedOrClosed);
+                break;
+            }
+        }
     }
 
     private void sendLinkPreview(WireClient client, String url, String title, String imageName) throws Exception {

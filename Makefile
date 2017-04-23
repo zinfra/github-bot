@@ -1,13 +1,13 @@
 SHELL := /usr/bin/env bash
-BOT   := hello
+BOT   := github
 OS    := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 
-CERTS_DIR		    := certs
-CSR_COUNTRY		    := DE
-CSR_STATE		    := Berlin
+CERTS_DIR		:= certs
+CSR_COUNTRY		:= DE
+CSR_STATE		:= Berlin
 CSR_LOCALITY		:= Berlin
 CSR_ORGANISATION	:= My Company GmbH
-CSR_COMMON		    := company.com
+CSR_COMMON		:= company.com
 KEYSTORE_PASSWORD	:= 123456
 KEYSTORE_FILE		:= keystore.jks
 
@@ -59,4 +59,4 @@ clean:
 
 .PHONY: run
 run:
-	java -jar target/echo.jar server conf/echo.yaml
+	java -jar target/$(BOT).jar server conf/$(BOT).yaml

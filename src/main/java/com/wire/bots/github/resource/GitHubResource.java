@@ -24,13 +24,11 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 
 @Path("/github")
 public class GitHubResource {
 
     private final BotConfig conf;
-    //private final Executor exec;
     private ClientRepo repo;
 
     public GitHubResource(ClientRepo repo, BotConfig conf) {
@@ -51,8 +49,8 @@ public class GitHubResource {
         String secret = Util.readLine(new File(String.format("%s/%s/secret", conf.getCryptoDir(), botId)));
         String challenge = getSha(payload, secret);
         if (!challenge.equals(signature)) {
-            Logger.warning("Invalid sha");
-            return javax.ws.rs.core.Response.
+            Logger.warning("Invalid sha1. Bot: " + botId);
+            return Response.
                     status(403).
                     build();
         }
@@ -95,14 +93,18 @@ public class GitHubResource {
         switch (response.action) {
             case "opened":
             case "reopened": {
-                String title = String.format("[%s] New Issue #%s: %s", response.repository.fullName,
-                        response.issue.number, response.issue.title);
+                String title = String.format("[%s] New Issue #%s: %s",
+                        response.repository.fullName,
+                        response.issue.number,
+                        response.issue.title);
                 sendLinkPreview(client, response.issue.url, title, event + "_" + response.action);
                 break;
             }
             case "closed": {
-                String title = String.format("[%s] Issue #%s closed: %s", response.repository.fullName,
-                        response.issue.number, response.issue.title);
+                String title = String.format("[%s] Issue #%s closed: %s",
+                        response.repository.fullName,
+                        response.issue.number,
+                        response.issue.title);
                 sendLinkPreview(client, response.issue.url, title, event + "_" + response.action);
                 break;
             }
@@ -110,21 +112,18 @@ public class GitHubResource {
     }
 
     private void handlePush(WireClient client, GitResponse response) throws Exception {
-        if (response.created) {
-            List<Commit> commits = response.commits;
-            String title = String.format("[%s] %s pushed %d commits",
-                    response.repository.fullName,
-                    response.sender.login,
-                    commits.size());
-            sendLinkPreview(client, response.compare, title, response.sender.avatarUrl);
-            StringBuilder builder = new StringBuilder();
-            for (Commit commit : commits) {
-                builder.append("- ");
-                builder.append(commit.message);
-                builder.append("\n");
-            }
-            client.sendText(builder.toString());
+        String title = String.format("[%s] %s pushed %d commits",
+                response.repository.fullName,
+                response.sender.login,
+                response.commits.size());
+        sendLinkPreview(client, response.compare, title, response.sender.avatarUrl);
+        StringBuilder builder = new StringBuilder();
+        for (Commit commit : response.commits) {
+            builder.append("- ");
+            builder.append(commit.message);
+            builder.append("\n");
         }
+        client.sendText(builder.toString());
     }
 
     private void handlePrReview(WireClient client, GitResponse response) throws Exception {
@@ -158,8 +157,11 @@ public class GitHubResource {
 
         switch (response.action) {
             case "created": {
-                String title = String.format("[%s] %s added a comment to PR #%s: %s", response.repository.fullName,
-                        response.comment.user.login, response.pr.number, response.comment.body);
+                String title = String.format("[%s] %s added a comment to PR #%s: %s",
+                        response.repository.fullName,
+                        response.comment.user.login,
+                        response.pr.number,
+                        response.comment.body);
                 sendLinkPreview(client, response.comment.url, title, response.sender.avatarUrl);
                 break;
             }
@@ -171,15 +173,20 @@ public class GitHubResource {
 
         switch (response.action) {
             case "opened": {
-                String title = String.format("[%s] New PR #%s: %s", response.repository.fullName,
-                        response.pr.number, response.pr.title);
+                String title = String.format("[%s] New PR #%s: %s",
+                        response.repository.fullName,
+                        response.pr.number,
+                        response.pr.title);
                 sendLinkPreview(client, response.pr.url, title, event + "_" + response.action);
                 break;
             }
             case "closed": {
                 String mergedOrClosed = response.pr.merged ? "merged" : "closed";
-                String title = String.format("[%s] PR #%s %s: %s", response.repository.fullName,
-                        response.pr.number, mergedOrClosed, response.pr.title);
+                String title = String.format("[%s] PR #%s %s: %s",
+                        response.repository.fullName,
+                        response.pr.number,
+                        mergedOrClosed,
+                        response.pr.title);
                 sendLinkPreview(client, response.pr.url, title, event + "_" + mergedOrClosed);
                 break;
             }

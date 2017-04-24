@@ -24,6 +24,7 @@ import com.wire.bots.sdk.MessageHandlerBase;
 import com.wire.bots.sdk.Util;
 import com.wire.bots.sdk.WireClient;
 import com.wire.bots.sdk.models.TextMessage;
+import com.wire.bots.sdk.server.model.NewBot;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +35,12 @@ public class MessageHandler extends MessageHandlerBase {
 
     public MessageHandler(BotConfig config) {
         this.config = config;
+    }
+
+    @Override
+    public boolean onNewBot(NewBot newBot) {
+        Logger.info("New Bot: %s, Conv: %s, origin: %s", newBot.id, newBot.conversation.id, newBot.origin.name);
+        return true;
     }
 
     @Override

@@ -16,6 +16,5 @@ server:
   requestLog:
     appenders: []
 
-name: github
 host: 35.187.99.125
 cryptoDir: /var/lib/github/crypto  # path to dir where to story crypto box files - directory must exists!

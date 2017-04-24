@@ -11,14 +11,13 @@ import com.wire.bots.sdk.WireClient;
 import com.wire.bots.sdk.assets.Picture;
 import com.wire.bots.sdk.models.AssetKey;
 
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
 
+@Consumes(MediaType.APPLICATION_JSON)
 @Path("/github")
 public class GitHubResource {
 

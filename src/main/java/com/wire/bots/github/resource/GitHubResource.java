@@ -115,18 +115,20 @@ public class GitHubResource {
     }
 
     private void handlePush(WireClient client, GitResponse response) throws Exception {
-        String title = String.format("[%s] %s pushed %d commits",
-                response.repository.fullName,
-                response.sender.login,
-                response.commits.size());
-        sendLinkPreview(client, response.compare, title, response.sender.avatarUrl);
-        StringBuilder builder = new StringBuilder();
-        for (Commit commit : response.commits) {
-            builder.append("- ");
-            builder.append(commit.message);
-            builder.append("\n");
+        if (!response.commits.isEmpty()) {
+            String title = String.format("[%s] %s pushed %d commits",
+                    response.repository.fullName,
+                    response.sender.login,
+                    response.commits.size());
+            sendLinkPreview(client, response.compare, title, response.sender.avatarUrl);
+            StringBuilder builder = new StringBuilder();
+            for (Commit commit : response.commits) {
+                builder.append("- ");
+                builder.append(commit.message);
+                builder.append("\n");
+            }
+            client.sendText(builder.toString());
         }
-        client.sendText(builder.toString());
     }
 
     private void handlePrReview(WireClient client, GitResponse response) throws Exception {

@@ -39,14 +39,12 @@ public class MessageHandler extends MessageHandlerBase {
     @Override
     public void onNewConversation(WireClient client) {
         try {
-            String host = config.host;
             String secret = sesGen.next(6);
             String botId = client.getId();
 
             Util.writeLine(secret, new File(String.format("%s/%s/secret", config.getCryptoDir(), botId)));
-            client.sendText(getHelp(host, secret, botId), TimeUnit.MINUTES.toMillis(15));
+            client.sendText(getHelp(config.getHost(), secret, botId), TimeUnit.MINUTES.toMillis(15));
         } catch (Exception e) {
-            e.printStackTrace();
             Logger.error(e.getMessage());
         }
     }
@@ -55,16 +53,20 @@ public class MessageHandler extends MessageHandlerBase {
     public void onText(WireClient client, TextMessage msg) {
         try {
             if (msg.getText().equalsIgnoreCase("/help")) {
-                String host = config.host;
+                String host = config.getHost();
                 String botId = client.getId();
                 String secret = Util.readLine(new File(String.format("%s/%s/secret", config.getCryptoDir(), botId)));
 
                 client.sendText(getHelp(host, secret, botId), TimeUnit.SECONDS.toMillis(60));
             }
         } catch (Exception e) {
-            e.printStackTrace();
             Logger.error(e.getLocalizedMessage());
         }
+    }
+
+    @Override
+    public void onBotRemoved(String botId) {
+        Logger.info("Bot: %s got removed from the conversation :(", botId);
     }
 
     private String getHelp(String host, String secret, String botId) {
@@ -78,10 +80,5 @@ public class MessageHandler extends MessageHandlerBase {
                 host,
                 botId,
                 secret);
-    }
-
-    @Override
-    public void onBotRemoved(String botId) {
-        Logger.info("This bot got removed from the conversation :(. BotId: " + botId);
     }
 }

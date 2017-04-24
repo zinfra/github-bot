@@ -11,8 +11,6 @@ import com.wire.bots.sdk.WireClient;
 import com.wire.bots.sdk.assets.Picture;
 import com.wire.bots.sdk.models.AssetKey;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -20,10 +18,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
-import java.math.BigInteger;
-import java.nio.charset.Charset;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 @Path("/github")
 public class GitHubResource {
@@ -38,18 +32,19 @@ public class GitHubResource {
 
     @POST
     @Path("/{botId}")
-    public Response webHook(@PathParam("botId") String botId,
-                            @HeaderParam("X-GitHub-Event") String event,
-                            @HeaderParam("X-Hub-Signature") String signature,
-                            @HeaderParam("X-GitHub-Delivery") String delivery,
-                            String payload) throws Exception {
+    public Response webHook(
+            @HeaderParam("X-GitHub-Event") String event,
+            @HeaderParam("X-Hub-Signature") String signature,
+            @HeaderParam("X-GitHub-Delivery") String delivery,
+            @PathParam("botId") String botId,
+            String payload) throws Exception {
 
-        Logger.info("Event: %s, Signature: %s, Delivery: %s", event, signature, delivery);
+        Logger.info("%s\tBot: %s\t%s\tDelivery: %s", event, botId, signature, delivery);
 
         String secret = Util.readLine(new File(String.format("%s/%s/secret", conf.getCryptoDir(), botId)));
-        String challenge = getSha(payload, secret);
+        String challenge = "sha1=" + Util.getHmacSHA1(payload, secret);
         if (!challenge.equals(signature)) {
-            Logger.warning("Invalid sha1. Bot: " + botId);
+            Logger.warning("Invalid sha1. Bot: %s", botId);
             return Response.
                     status(403).
                     build();
@@ -59,27 +54,31 @@ public class GitHubResource {
         WireClient client = repo.getWireClient(botId);
         GitResponse response = mapper.readValue(payload, GitResponse.class);
 
-        switch (event) {
-            case "pull_request": {
-                handlePullReq(event, client, response);
-                break;
+        try {
+            switch (event) {
+                case "pull_request": {
+                    handlePullReq(event, client, response);
+                    break;
+                }
+                case "pull_request_review_comment": {
+                    handlePrReviewComment(client, response);
+                    break;
+                }
+                case "pull_request_review": {
+                    handlePrReview(client, response);
+                    break;
+                }
+                case "push": {
+                    handlePush(client, response);
+                    break;
+                }
+                case "issues": {
+                    handleIssue(event, client, response);
+                    break;
+                }
             }
-            case "pull_request_review_comment": {
-                handlePrReviewComment(client, response);
-                break;
-            }
-            case "pull_request_review": {
-                handlePrReview(client, response);
-                break;
-            }
-            case "push": {
-                handlePush(client, response);
-                break;
-            }
-            case "issues": {
-                handleIssue(event, client, response);
-                break;
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return Response.
@@ -206,12 +205,5 @@ public class GitHubResource {
         AssetKey assetKey = client.uploadAsset(preview);
         preview.setAssetKey(assetKey.key);
         client.sendLinkPreview(url, title, preview);
-    }
-
-    private String getSha(String payload, String secret) throws NoSuchAlgorithmException, InvalidKeyException {
-        Mac hmac = Mac.getInstance("HmacSHA1");
-        hmac.init(new SecretKeySpec(secret.getBytes(Charset.forName("UTF-8")), "HmacSHA1"));
-        byte[] bytes = hmac.doFinal(payload.getBytes(Charset.forName("UTF-8")));
-        return String.format("sha1=%040x", new BigInteger(1, bytes));
     }
 }

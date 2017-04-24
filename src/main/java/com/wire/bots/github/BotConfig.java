@@ -19,17 +19,7 @@
 package com.wire.bots.github;
 
 public class BotConfig extends com.wire.bots.sdk.Configuration {
-    public String name;
-    public int accent;
     public String host;
-
-    public String getName() {
-        return name;
-    }
-
-    public int getAccent() {
-        return accent;
-    }
 
     public String getHost() {
         return host;

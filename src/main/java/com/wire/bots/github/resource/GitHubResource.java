@@ -27,7 +27,8 @@ import java.net.URL;
 public class GitHubResource {
 
     private final BotConfig conf;
-    private ClientRepo repo;
+    private final ClientRepo repo;
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public GitHubResource(ClientRepo repo, BotConfig conf) {
         this.repo = repo;
@@ -48,16 +49,21 @@ public class GitHubResource {
         String secret = Util.readLine(new File(String.format("%s/%s/secret", conf.getCryptoDir(), botId)));
         String challenge = "sha1=" + Util.getHmacSHA1(payload, secret);
         if (!challenge.equals(signature)) {
-            Logger.warning("Invalid sha1. Bot: %s", botId);
+            Logger.warning("Invalid Signature. Bot: %s", botId);
             return Response.
                     status(403).
                     build();
         }
 
-        ObjectMapper mapper = new ObjectMapper();
         WireClient client = repo.getWireClient(botId);
-        GitResponse response = mapper.readValue(payload, GitResponse.class);
+        if (client == null) {
+            Logger.warning("Bot previously deleted. Bot: %s", botId);
+            return Response.
+                    status(404).
+                    build();
+        }
 
+        GitResponse response = mapper.readValue(payload, GitResponse.class);
         try {
             switch (event) {
                 case "pull_request": {

@@ -142,14 +142,14 @@ public class GitHubResource {
 
         switch (response.action) {
             case "submitted": {
-                String title;
+                String title = null;
                 if ((response.review.body == null || response.review.body.isEmpty()) && !response.review.state.equals("commented")) {
                     title = String.format("[%s] %s %s PR #%s",
                             response.repository.fullName,
                             response.review.user.login,
                             response.review.state,
                             response.pr.number);
-                } else {
+                } else if (response.review.body != null) {
                     title = String.format("[%s] %s %s PR #%s: %s",
                             response.repository.fullName,
                             response.review.user.login,
@@ -157,7 +157,10 @@ public class GitHubResource {
                             response.pr.number,
                             response.review.body);
                 }
-                sendLinkPreview(client, response.pr.url, title, response.sender.avatarUrl);
+
+                if (title != null) {
+                    sendLinkPreview(client, response.pr.url, title, response.sender.avatarUrl);
+                }
                 break;
             }
         }
@@ -168,12 +171,14 @@ public class GitHubResource {
 
         switch (response.action) {
             case "created": {
-                String title = String.format("[%s] %s added a comment to PR #%s: %s",
-                        response.repository.fullName,
-                        response.comment.user.login,
-                        response.pr.number,
-                        response.comment.body);
-                sendLinkPreview(client, response.comment.url, title, response.sender.avatarUrl);
+                if (response.comment.body != null) {
+                    String title = String.format("[%s] %s added a comment to PR #%s: %s",
+                            response.repository.fullName,
+                            response.comment.user.login,
+                            response.pr.number,
+                            response.comment.body);
+                    sendLinkPreview(client, response.comment.url, title, response.sender.avatarUrl);
+                }
                 break;
             }
         }

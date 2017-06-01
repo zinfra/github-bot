@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME="github-disk"
+NAME="jira-disk"
 
 gcloud compute disks create $NAME \
     --zone europe-west1-c \

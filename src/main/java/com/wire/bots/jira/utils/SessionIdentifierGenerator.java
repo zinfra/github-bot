@@ -1,4 +1,4 @@
-package com.wire.bots.github.utils;
+package com.wire.bots.jira.utils;
 
 import java.security.SecureRandom;
 import java.math.BigInteger;

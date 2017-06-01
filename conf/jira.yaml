@@ -1,20 +1,19 @@
 server:
   applicationConnectors:
     - type: http
-      port: 8049
+      port: 8080
     - type: https
-      port: 443
+      port: 4443
       keyStorePath: keystore.jks
-      keyStorePassword: your_secret
       certAlias: myservercert
       validateCerts: false
       validatePeers: false
 
   adminConnectors:
     - type: http
-      port: 8051
+      port: 8081
   requestLog:
     appenders: []
 
-host: 35.187.99.125
-cryptoDir: /var/lib/github/crypto  # path to dir where to story crypto box files - directory must exists!
+host: 104.155.56.43
+cryptoDir: /var/lib/jira  # path to dir where to story crypto box files - directory must exists!

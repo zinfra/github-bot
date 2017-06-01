@@ -16,24 +16,20 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-package com.wire.bots.github;
+package com.wire.bots.jira;
 
-import com.wire.bots.github.utils.SessionIdentifierGenerator;
+import com.wire.bots.jira.utils.SessionIdentifierGenerator;
 import com.wire.bots.sdk.Logger;
 import com.wire.bots.sdk.MessageHandlerBase;
-import com.wire.bots.sdk.Util;
 import com.wire.bots.sdk.WireClient;
 import com.wire.bots.sdk.models.TextMessage;
 import com.wire.bots.sdk.server.model.NewBot;
-
-import java.io.File;
-import java.util.concurrent.TimeUnit;
 
 public class MessageHandler extends MessageHandlerBase {
     private final BotConfig config;
     private final SessionIdentifierGenerator sesGen = new SessionIdentifierGenerator();
 
-    public MessageHandler(BotConfig config) {
+    MessageHandler(BotConfig config) {
         this.config = config;
     }
 
@@ -46,11 +42,9 @@ public class MessageHandler extends MessageHandlerBase {
     @Override
     public void onNewConversation(WireClient client) {
         try {
-            String secret = sesGen.next(6);
             String botId = client.getId();
-
-            Util.writeLine(secret, new File(String.format("%s/%s/secret", config.getCryptoDir(), botId)));
-            client.sendText(getHelp(config.getHost(), secret, botId), TimeUnit.MINUTES.toMillis(15));
+            String help = getHelp(config.getHost(), botId);
+            client.sendText(help);
         } catch (Exception e) {
             Logger.error(e.getMessage());
         }
@@ -62,9 +56,9 @@ public class MessageHandler extends MessageHandlerBase {
             if (msg.getText().equalsIgnoreCase("/help")) {
                 String host = config.getHost();
                 String botId = client.getId();
-                String secret = Util.readLine(new File(String.format("%s/%s/secret", config.getCryptoDir(), botId)));
 
-                client.sendText(getHelp(host, secret, botId), TimeUnit.SECONDS.toMillis(60));
+                String help = getHelp(host, botId);
+                client.sendText(help);
             }
         } catch (Exception e) {
             Logger.error(e.getLocalizedMessage());
@@ -76,16 +70,11 @@ public class MessageHandler extends MessageHandlerBase {
         Logger.info("Bot: %s got removed from the conversation :(", botId);
     }
 
-    private String getHelp(String host, String secret, String botId) {
-        return String.format("Hi, I'm GitHub-Bot. Here is how to set me up:\n\n"
-                        + "1. Go to the repository that you want to connect to\n"
-                        + "2. Go to **Settings / Webhooks / Add webhook**\n"
-                        + "3. Add **Payload URL**: https://%s/github/%s\n"
-                        + "4. Set **Content-Type**: application/json\n"
-                        + "5. **Disable** SSL verification\n"
-                        + "6. Set **Secret**: %s",
+    private String getHelp(String host, String botId) {
+        return String.format("Hi, I'm JIRA-Bot. Here is how to set me up:\n\n"
+                        + "1. Go to: **System / Advanced / Webhooks**\n"
+                        + "2. Set **URL**: http://%s/jira/webhook/v1/%s/${project.id}",
                 host,
-                botId,
-                secret);
+                botId);
     }
 }

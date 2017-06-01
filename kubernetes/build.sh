@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME="github"
+NAME="jira"
 
 git pull
 (cd ..; mvn -Plinux package)

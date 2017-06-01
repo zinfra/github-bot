@@ -2,19 +2,19 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: github
+  name: jira
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        name: github
+        name: jira
     spec:
       restartPolicy: Always
 
       containers:
-        - name: github
-          image: eu.gcr.io/wire-bot/github:latest
+        - name: jira
+          image: eu.gcr.io/wire-bot/jira:latest
 
           resources:
             requests:
@@ -26,52 +26,58 @@ spec:
             - name: TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: github-knows
+                  name: jira-knows
                   key: token
 
             - name: KEYSTORE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: github-knows
+                  name: jira-knows
                   key: keystore_password
 
           volumeMounts:
-            - name: github-disk
-              mountPath: /var/lib/github/crypto
+            - name: jira-disk
+              mountPath: /var/lib/jira
 
-            - name: github-config
-              mountPath: /etc/github
+            - name: jira-config
+              mountPath: /etc/jira
 
           command:
             - "/usr/bin/java"
             - "-Ddw.server.applicationConnectors[1].keyStorePassword=$(KEYSTORE_PASSWORD)"
             - "-Ddw.auth=$(TOKEN)"
             - "-jar"
-            - "github.jar"
+            - "jira.jar"
             - "server"
-            - "/etc/github/github.yaml"
+            - "/etc/jira/jira.yaml"
 
       volumes:
-        - name: github-disk
+        - name: jira-disk
           gcePersistentDisk:
-            pdName: github-disk
+            pdName: jira-disk
             fsType: ext4
 
-        - name: github-config
+        - name: jira-config
           configMap:
-            name: github-config
+            name: jira-config
 
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: github
+  name: jira
 spec:
   selector:
-    name: github
+    name: jira
   type: LoadBalancer
   ports:
     - name: https
       port: 443
+      targetPort: 4443
+      protocol: TCP
+
+    - name: http
+      port: 80
+      targetPort: 8080
       protocol: TCP

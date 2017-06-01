@@ -1,7 +1,7 @@
 FROM wire/bots.runtime:latest
 
-COPY target/github.jar      /opt/github/github.jar
-COPY certs/keystore.jks    /opt/github/keystore.jks
+COPY target/jira.jar      /opt/jira/jira.jar
+COPY certs/keystore.jks    /opt/jira/keystore.jks
 
-WORKDIR /opt/github
+WORKDIR /opt/jira
 

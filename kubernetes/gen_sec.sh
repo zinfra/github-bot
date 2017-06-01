@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME="github-knows"
+NAME="jira-knows"
 
 AUTH_TOKEN="your_token"
 KEYSTORE_PASSWORD="your_secret"

@@ -16,25 +16,12 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-package com.wire.bots.github;
+package com.wire.bots.jira;
 
-import com.wire.bots.github.resource.GitHubResource;
-import com.wire.bots.sdk.MessageHandlerBase;
-import com.wire.bots.sdk.Server;
-import io.dropwizard.setup.Environment;
+public class BotConfig extends com.wire.bots.sdk.Configuration {
+    public String host;
 
-public class BotService extends Server<BotConfig> {
-    public static void main(String[] args) throws Exception {
-        new BotService().run(args);
-    }
-
-    @Override
-    protected MessageHandlerBase createHandler(BotConfig config, Environment env) {
-        return new MessageHandler(config);
-    }
-
-    @Override
-    protected void onRun(BotConfig botConfig, Environment env) {
-        addResource(new GitHubResource(repo, config), env);
+    public String getHost() {
+        return host;
     }
 }
